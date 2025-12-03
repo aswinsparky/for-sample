@@ -158,39 +158,6 @@ Reports are posted to PRs and available as workflow artifacts.
 
 ---
 
-## Frequently Asked Questions (FAQ)
-
-### 1. Why do we use multiple security tools?
-Using multiple tools ensures comprehensive coverage. Each tool specializes in different areas (code, containers, infrastructure), so combining them catches more issues and reduces risk.
-
-### 2. What if my PR fails the security scan?
-Review the inline comments and summary report. Fix the issues, push new commits, and the workflow will re-run automatically.
-
-### 3. Can I run these scans locally before pushing?
-Yes! Install the tools locally and run them:
-- Bandit: `pip install bandit && bandit -r .`
-- SonarQube: Install SonarScanner and run `sonar-scanner`
-- Trivy: `brew install aquasecurity/trivy/trivy && trivy config Dockerfile`
-- Hadolint: `brew install hadolint && hadolint Dockerfile`
-- Checkov: `pip install checkov && checkov -d Terraform/`
-
-### 4. How do I add a new security tool?
-Update the workflow YAML to add a new step. Ensure it outputs a JSON report and update the report aggregation logic if needed.
-
-### 5. What if my project doesn't use Terraform or Docker?
-The workflow will skip those scans if the relevant files/folders are missing. You can customize the workflow to fit your stack.
-
-### 6. How do I customize the SonarQube rules?
-Edit the quality profile in your SonarQube server. You can enable/disable rules, set severity, and create custom rules for your project.
-
-### 7. How do I rotate my SonarQube token?
-Generate a new token in SonarQube UI, update `sonar-project.properties`, and commit the change. Remove old tokens from your account.
-
-### 8. How do I add more environments (e.g., staging)?
-Create a new branch (e.g., `staging`), add a corresponding `.tfvars` file, and update the workflow logic to select the right file for that branch.
-
----
-
 ## Advanced Usage & Customization
 
 ### Customizing the Workflow
