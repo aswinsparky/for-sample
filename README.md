@@ -1,6 +1,6 @@
 # Security Scan Pipeline - Complete Setup Guide
 
-## �� Table of Contents
+## Table of Contents
 
 1. Overview
 2. Branching Strategy
@@ -52,24 +52,24 @@ feature/* (Feature Development)
 **Branch Creation Order:**
 
 1. **Main Branch (Production)**
-   ```bash
+   ```
    git checkout main
 git pull origin main
    ```
 2. **UAT Branch (from Main)**
-   ```bash
+   ```
 git checkout main
 git checkout -b uat
 git push origin uat
    ```
 3. **Develop Branch (from UAT)**
-   ```bash
+   ```
 git checkout uat
 git checkout -b develop
 git push origin develop
    ```
 4. **Feature Branch (from Develop)**
-   ```bash
+   ```
 git checkout develop
 git checkout -b feature/your-feature-name
 git push origin feature/your-feature-name
@@ -128,30 +128,6 @@ sonar.sources=.
 - **sonar.host.url**: SonarQube server URL
 - **sonar.token**: Token from SonarQube UI (My Account → Security)
 - **sonar.sources**: Source directory (usually `.`)
-
----
-
-## Terraform Structure & Configuration
-
-```
-Terraform/
-  environments/
-    dev.tfvars
-    prod.tfvars
-  modules/
-    s3/
-      main.tf
-      variables.tf
-      outputs.tf
-  main.tf
-  variables.tf
-  outputs.tf
-```
-
-**.tfvars selection:**
-- `feature/* → develop`: `dev.tfvars`
-- `develop → uat`: `dev.tfvars`
-- `uat → main`: `prod.tfvars`
 
 ---
 
