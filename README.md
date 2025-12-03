@@ -258,29 +258,6 @@ Place in the root directory.
 
 ---
 
-## Example Terraform Module Structure
-
-```
-Terraform/
-  modules/
-    s3/
-      main.tf
-      variables.tf
-      outputs.tf
-    ec2/
-      main.tf
-      variables.tf
-      outputs.tf
-  environments/
-    dev.tfvars
-    prod.tfvars
-  main.tf
-  variables.tf
-  outputs.tf
-```
-
----
-
 ## Example PR Review Process
 
 1. Developer pushes feature branch.
