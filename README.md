@@ -163,18 +163,7 @@ Reports are posted to PRs and available as workflow artifacts.
 ### Customizing the Workflow
 - Add or remove tools by editing the workflow YAML.
 - Change scan severity thresholds (e.g., Trivy: `--severity MEDIUM,HIGH,CRITICAL`).
-- Integrate with Slack, Teams, or email for notifications.
 - Upload reports to S3, GCS, or other storage for compliance.
-
-### Example: Adding Slack Notifications
-Add a step after report generation:
-```yaml
-- name: Notify Slack
-  uses: slackapi/slack-github-action@v1.23.0
-  with:
-    slack-message: "Security scan completed for ${{ github.repository }} on branch ${{ github.head_ref }}. See report.md for details."
-    slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
-```
 
 ### Example: Enforcing PR Approval
 Configure branch protection rules to require at least one approval before merging. This ensures code review and security validation.
