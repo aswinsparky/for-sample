@@ -356,28 +356,6 @@ echo "Done. See JSON reports for details."
 
 ---
 
-## Example PR Template
-
-Create `.github/pull_request_template.md`:
-```markdown
-    # Pull Request
-    
-    ## Description
-    Describe your changes and why they are needed.
-    
-    ## Security Checklist
-    - [ ] All security scan issues addressed
-    - [ ] No hardcoded secrets
-    - [ ] All dependencies up to date
-    - [ ] Terraform plan reviewed
-    - [ ] AWS IAM roles use least privilege
-    
-    ## Screenshots (if applicable)
-    
-    ## Additional Notes
-
-```
-
 ---
 
 ## References & Further Reading
