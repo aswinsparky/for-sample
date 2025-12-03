@@ -1,312 +1,224 @@
-Here is the complete content of the `README.md` file in a single block.
+# Security Scan Pipeline - Complete Setup Guide
 
-```markdown
-# 🛡️ Security Scan Pipeline - Complete Setup Guide
+## �� Table of Contents
 
-## 📋 Table of Contents
-
-1. [Overview](#1-overview)
-2. [Branching Strategy & Flow](#2-branching-strategy--flow)
-3. [Protected Branches & PR Triggers](#3-protected-branches--pr-triggers)
-4. [SonarQube Configuration](#4-sonarqube-configuration)
-5. [AWS OIDC Configuration](#5-aws-oidc-configuration)
-6. [Security Scans Overview](#6-security-scans-overview)
-7. [Terraform & Checkov Integration](#7-terraform--checkov-integration)
-8. [PR Commenting Strategy](#8-pr-commenting-strategy)
-9. [Troubleshooting](#9-troubleshooting)
-
----
-
-## 1. Overview
-
-This GitHub Actions workflow (`security-scan.yml`) establishes a robust **DevSecOps pipeline** for continuous security and quality validation. It integrates multiple leading security scanning tools directly into the Pull Request (PR) workflow, ensuring all code, container images, and infrastructure-as-code (IaC) are scanned before merging.
-
-### Key Features
-
-* **Multi-Tool Scanning**: Runs SonarQube, Bandit, Trivy, Hadolint, and Checkov.
-* **Branch-Aware Execution**: The workflow only runs for specific, critical PR paths (`feature/*` to `develop`, and `develop` to `main`).
-* **Contextual Reporting**: Posts a full summary report and **inline comments** directly on the lines of code that contain security findings.
-* **OIDC Authentication**: Securely authenticates with AWS using IAM Role assumption (OIDC).
-* **Terraform Validation**: Includes `terraform plan` and `checkov` scanning, selecting environment variables based on the PR target branch.
+1. Overview
+2. Branching Strategy
+3. Branch Setup Instructions
+4. Protected Branches
+5. Pull Request Workflow
+6. Security Scans Overview
+7. SonarQube Configuration
+8. Terraform Structure & Configuration
+9. Workflow Comments & Their Purpose
+10. Report Generation & Storage
+11. AWS Configuration
+12. Troubleshooting
 
 ---
 
-## 2. Branching Strategy & Flow
+## Overview
 
-The pipeline is built around a restricted branching model to enforce quality gates at critical merge points.
+This repository uses a robust DevSecOps CI/CD pipeline powered by GitHub Actions. Every Pull Request triggers automated security scans for code, Dockerfiles, and Terraform infrastructure, ensuring high code quality and security before merging.
 
-### Branch Hierarchy
+**Tools Used:**
+- Bandit (Python SAST)
+- SonarQube (code quality & security)
+- Trivy (container & config scanning)
+- Hadolint (Dockerfile linting)
+- Checkov (Terraform IaC scanning)
+- AWS (OIDC authentication)
 
-The repository structure follows a strict hierarchy, starting from **main** as the most stable environment.
+---
+
+## Branching Strategy
+
+We use a GitFlow-inspired model for environment isolation and quality gates:
 
 ```
-
 main (Production)
-↑
+  ↑
 uat (User Acceptance Testing)
-↑
-develop (Development/Integration)
-↑
-feature/\* (Feature Development)
-
-````
-
-### ⚠️ Step-by-Step Branch Creation
-
-It is **critical** to create the branches in the following order to ensure the correct base and history:
-
-1.  **Create `uat` from `main`:**
-    ```bash
-    git checkout main
-    git pull origin main
-    git checkout -b uat
-    git push origin uat
-    ```
-2.  **Create `develop` from `uat`:**
-    ```bash
-    git checkout uat
-    git pull origin uat
-    git checkout -b develop
-    git push origin develop
-    ```
-3.  **Create `feature/` branches from `develop`:**
-    ```bash
-    git checkout develop
-    git pull origin develop
-    git checkout -b feature/my-new-feature
-    git push origin feature/my-new-feature
-    ```
-
-### Pull Request Flow (Triggers)
-
-The workflow is configured to run on the following specific PRs:
-
-### Branch Flow Diagram
-```
-┌─────────────┐
-│   feature/  │  ← Developers work here
-│  your-feat  │
-└──────┬──────┘
-       │ PR (with security scans)
-       ↓
-┌─────────────┐
-│   develop   │  ← Integration & Development Environment
-└──────┬──────┘
-       │ PR (with security scans)
-       ↓
-┌─────────────┐
-│     uat     │  ← User Acceptance Testing Environment
-└──────┬──────┘
-       │ PR (with security scans)
-       ↓
-┌─────────────┐
-│    main     │  ← Production Environment
-└─────────────┘
+  ↑
+develop (Development)
+  ↑
+feature/* (Feature Development)
 ```
 
 ---
 
-## 3. Protected Branches & PR Triggers
+## Branch Setup Instructions
 
-### Workflow Trigger Condition
+**Branch Creation Order:**
 
-The workflow uses an explicit `if` condition to limit runs to the designated critical paths:
+1. **Main Branch (Production)**
+   ```bash
+   git checkout main
+git pull origin main
+   ```
+2. **UAT Branch (from Main)**
+   ```bash
+git checkout main
+git checkout -b uat
+git push origin uat
+   ```
+3. **Develop Branch (from UAT)**
+   ```bash
+git checkout uat
+git checkout -b develop
+git push origin develop
+   ```
+4. **Feature Branch (from Develop)**
+   ```bash
+git checkout develop
+git checkout -b feature/your-feature-name
+git push origin feature/your-feature-name
+   ```
 
-```yaml
-if: |
-  (startsWith(github.head_ref, 'feature/') && github.base_ref == 'develop') || 
-  (github.head_ref == 'develop' && github.base_ref == 'main')
-````
+**Feature branches** must start with `feature/`.
 
-### GitHub Protection Rules
+---
 
-To enforce this security gate, the following branches **must** be protected in your repository settings:
+## Protected Branches
 
-  * `main`
-  * `uat`
-  * `develop`
+Branches `main`, `uat`, and `develop` are protected:
+- No direct commits
+- Require PRs and security scans
+- Require code review and status checks
 
-Ensure you enable **"Require status checks to pass before merging"** and select the `security-scan` job.
+Configure these in GitHub repository settings under **Branches**.
 
------
+---
 
-## 4\. SonarQube Configuration
+## Pull Request Workflow
 
-The workflow uses the `sonar-scanner` CLI to execute the scan, which reads its configuration from a file named `sonar-project.properties` in the repository root.
+- **feature/* → develop**: For new features (uses `dev.tfvars`)
+- **develop → uat**: For UAT testing (uses `dev.tfvars`)
+- **uat → main**: For production (uses `prod.tfvars`)
 
-### `sonar-project.properties` File
+Security scans run automatically on PRs between these branches.
 
-You **must** create this file and configure it with your project's unique key, the SonarQube server URL, and an authentication token.
+---
+
+## Security Scans Overview
+
+**Scans performed:**
+- **SonarQube**: Code quality and vulnerabilities
+- **Bandit**: Python security issues
+- **Trivy**: Dockerfile misconfigurations (HIGH/CRITICAL)
+- **Hadolint**: Dockerfile linting
+- **Checkov**: Terraform security (if `Terraform/` exists)
+
+Each tool generates a JSON report and posts inline comments and a summary to the PR.
+
+---
+
+## SonarQube Configuration
+
+Create a `sonar-project.properties` file in the repository root with:
 
 ```properties
-# sonar-project.properties
-
-# --- REQUIRED SETTINGS ---
-
-# 1. Unique key for your project in SonarQube
-sonar.projectKey=CiCd-pipeline-checking-key
-
-# 2. The URL of your SonarQube server
-sonar.host.url=[http://13.126.220.187:9000](http://13.126.220.187:9000)
-
-# 3. Authentication Token (GENERATED FROM SONARQUBE UI)
-# **SECURITY WARNING**: This token is visible in the workflow logs.
-# For production use, this value should be stored as a GitHub Secret.
-# (E.g., sonar.token=${{ secrets.SONAR_TOKEN }})
-sonar.token=squ_21245d46f6e715cdb9ecbe95acd899b66841e034
-
-# --- OPTIONAL SETTINGS ---
-
-# Source directory to scan (usually current directory)
+sonar.projectKey=your-project-key
+sonar.host.url=http://your-sonarqube-server:9000
+sonar.token=your-sonarqube-token
 sonar.sources=.
-
-# Encoding of the source code
-sonar.sourceEncoding=UTF-8
 ```
 
-### Token Security Best Practice
+- **sonar.projectKey**: Unique key for your project
+- **sonar.host.url**: SonarQube server URL
+- **sonar.token**: Token from SonarQube UI (My Account → Security)
+- **sonar.sources**: Source directory (usually `.`)
 
-While the example shows the token in the file, for production use, it is **highly recommended** to store your `sonar.token` in a GitHub secret (e.g., `SONAR_TOKEN`) and reference it in the `sonar-project.properties` file using `${{ secrets.SONAR_TOKEN }}`.
+---
 
------
-
-## 5\. AWS OIDC Configuration
-
-The workflow uses the `aws-actions/configure-aws-credentials@v4` action to assume an IAM role via **OpenID Connect (OIDC)**, eliminating the need to store AWS access keys in GitHub Secrets.
-
-### Required IAM Role
-
-| Parameter | Value |
-| :--- | :--- |
-| **Role ARN** | `arn:aws:iam::302263040839:role/Githubactions` |
-| **AWS Region** | `ap-south-1` |
-
-### Trust Relationship Update
-
-The IAM Role **`Githubactions`** on account `302263040839` must have its **Trust Policy** updated to allow your GitHub repository to assume the role.
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::302263040839:oidc-provider/token.actions.githubusercontent.com"
-      },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringEquals": {
-          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
-        },
-        "StringLike": {
-          "token.actions.githubusercontent.com:sub": "repo:YOUR_ORG/YOUR_REPO:*"
-        }
-      }
-    }
-  ]
-}
-```
-
-**Replace `YOUR_ORG/YOUR_REPO` with your actual GitHub repository path.**
-
------
-
-## 6\. Security Scans Overview
-
-The pipeline executes five different security scanners in sequence:
-
-| Tool | Focus Area | Command/Action | Report File |
-| :--- | :--- | :--- | :--- |
-| **SonarQube** | SAST, Code Quality, Bugs | `sonar-scanner` | `sonar_issues.json` |
-| **Bandit** | Python SAST | `bandit -r . -f json` | `bandit-report.json` |
-| **Hadolint** | Dockerfile Linting | `hadolint --format json Dockerfile` | `hadolint-report.json` |
-| **Trivy** | Dockerfile Vulnerabilities | `trivy config Dockerfile` | `trivy-report.json` |
-| **Checkov** | IaC Security (Terraform) | `checkov -f tfplan.json` | `Terraform/checkov-report.json` |
-
------
-
-## 7\. Terraform & Checkov Integration
-
-The Checkov scan is specifically configured to analyze your Terraform code's execution plan, which provides a more accurate view of the final deployed configuration.
-
-### Folder Structure Requirement
-
-The Terraform code must reside in a folder named `Terraform/` for the scan to be triggered.
+## Terraform Structure & Configuration
 
 ```
-repo-root/
-└── Terraform/
-    ├── environments/
-    │   ├── dev.tfvars         <-- Used for 'feature/*' -> 'develop' PRs
-    │   └── prod.tfvars        <-- Used for 'develop' -> 'main' PRs
-    └── ... (your .tf files)
+Terraform/
+  environments/
+    dev.tfvars
+    prod.tfvars
+  modules/
+    s3/
+      main.tf
+      variables.tf
+      outputs.tf
+  main.tf
+  variables.tf
+  outputs.tf
 ```
 
-### Automatic `.tfvars` Selection
+**.tfvars selection:**
+- `feature/* → develop`: `dev.tfvars`
+- `develop → uat`: `dev.tfvars`
+- `uat → main`: `prod.tfvars`
 
-The workflow automatically sets the `TFVARS` environment variable based on the PR's target branch:
+---
 
-| PR Direction | `$TFVARS` Value | Rationale |
-| :--- | :--- | :--- |
-| `feature/*` $\rightarrow$ `develop` | `dev.tfvars` | Development environment config. |
-| `develop` $\rightarrow$ `main` | `prod.tfvars` | Production environment config. |
+## Workflow Comments & Their Purpose
 
-This variable is then used in the `Terraform Plan` step:
+- **Inline Comments**: Posted on code lines with issues (severity, tool, description, link)
+- **Summary Comment**: Full report with pass/fail counts and details, updated automatically (marker: `<!-- security-scan-full-report -->`)
 
-```bash
-terraform plan -var-file=./environments/${TFVARS} -out=tfplan.binary
-```
+---
 
------
+## Report Generation & Storage
 
-## 8\. PR Commenting Strategy
+**Generated files:**
+- `sonar_issues.json`
+- `bandit-report.json`
+- `trivy-report.json`
+- `hadolint-report.json`
+- `Terraform/checkov-report.json`
+- `report.md`
+- `all_findings.json` (temporary)
 
-The workflow generates two types of comments to ensure all findings are clear and actionable.
+Reports are posted to PRs and available as workflow artifacts.
 
-### 1\. Security Scan Summary
+---
 
-A single, comprehensive comment is posted to the PR discussion with a full breakdown of all findings, including pass/fail counts and detailed reports for each tool.
+## AWS Configuration
 
-  * **Update Logic**: The comment is tagged with a marker (\`\`). On subsequent runs, the workflow automatically **updates** the existing comment, avoiding comment spam.
+**IAM Role ARN**: `arn:aws:iam::302263040839:role/Githubactions`
+**Region**: `ap-south-1`
 
-### 2\. Inline Review Comments
+**Trust Policy**: Add your repo and branches to the OIDC trust relationship.
 
-Individual findings are posted as review comments directly on the line of code that triggered the issue.
+**Permissions**: Role should allow S3 upload and any resources managed by Terraform.
 
-  * **Batching**: Comments are sent in batches of **20** with a delay between each batch to prevent GitHub API rate-limiting.
-  * **Filtering**: Comments are **filtered** to only appear on lines that are part of the current Pull Request's diff, reducing noise from legacy code issues.
+---
 
------
+## Troubleshooting
 
-## 9\. Troubleshooting
+- **SonarQube errors**: Check URL, token, and project key
+- **Dockerfile issues**: Ensure file exists and is named correctly
+- **Terraform skipped**: Ensure `Terraform/` folder exists
+- **AWS auth errors**: Verify IAM role and trust policy
+- **Rate limits**: Workflow retries automatically
+- **Workflow not triggering**: Check PR direction and workflow file location
 
-### ❌ Issue: SonarQube Fails to Connect
+---
 
-  * **Action**: Double-check the `sonar.host.url` and `sonar.token` in your `sonar-project.properties` file.
-  * **Action**: Ensure the SonarQube server is running and reachable from GitHub Actions runners.
+## Quick Reference
 
-### ❌ Issue: Checkov Scan Is Skipped
+- Create branches in order: main → uat → develop → feature/*
+- Configure `sonar-project.properties` with your key, name, and token
+- Ensure all required files and folders exist
+- Review PR comments and summary for security issues
 
-  * **Reason**: The `Terraform/` folder was not found.
-  * **Action**: Verify the folder exists and is named exactly `Terraform` (case-sensitive).
+---
 
-### ❌ Issue: Workflow Does Not Run on PR
+## Additional Resources
 
-  * **Reason**: The PR flow does not match the `if` condition.
-  * **Action**: Ensure your PR is either `feature/*` $\rightarrow$ `develop` or `develop` $\rightarrow$ `main`.
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [SonarQube Documentation](https://docs.sonarqube.org/)
+- [Bandit Documentation](https://bandit.readthedocs.io/)
+- [Trivy Documentation](https://aquasecurity.github.io/trivy/)
+- [Hadolint Documentation](https://github.com/hadolint/hadolint)
+- [Checkov Documentation](https://www.checkov.io/)
 
-### ❌ Issue: AWS Authentication Fails
+---
 
-  * **Reason**: IAM Role Assumption failed.
-  * **Action**: Verify the **Trust Policy** on the IAM Role `Githubactions` has been updated to include your repository's OIDC Subject (see [AWS OIDC Configuration](https://www.google.com/search?q=%235-aws-oidc-configuration)).
+**Last Updated**: 2024
 
-### ❌ Issue: Inline Comments Not Appearing
-
-  * **Reason**: The findings are not on lines changed in the current PR diff (they were filtered out).
-  * **Action**: Check the summary report. If the issue is critical, manually review the code line even if the inline comment was skipped.
-
-<!-- end list -->
-
-```
-```
+This repository follows best practices for secure, compliant, and maintainable infrastructure code.
