@@ -195,6 +195,4 @@ Reports are posted to PRs and available as workflow artifacts.
 
 ---
 
-**Last Updated**: 2024
-
 This repository follows best practices for secure, compliant, and maintainable infrastructure code.
