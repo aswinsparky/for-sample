@@ -102,7 +102,7 @@ Create a `sonar-project.properties` file in the repository root with:
 
 ```properties
 sonar.projectKey=your-project-key
-sonar.host.url=http://your-sonarqube-server:9000
+sonar.host.url=http://<ec2-instance-public-ip>:9000
 sonar.token=your-sonarqube-token
 sonar.sources=.
 ```
