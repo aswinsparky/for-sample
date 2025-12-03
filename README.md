@@ -271,37 +271,6 @@ Place in the root directory.
 
 ---
 
-## Visual Workflow Diagram
-
-```mermaid
-flowchart TD
-    A[feature/*] -->|PR| B[develop]
-    B -->|PR| C[uat]
-    C -->|PR| D[main]
-    subgraph Security Scan
-        E[Bandit]
-        F[SonarQube]
-        G[Trivy]
-        H[Hadolint]
-        I[Checkov]
-    end
-    A -.-> E
-    A -.-> F
-    A -.-> G
-    A -.-> H
-    A -.-> I
-    B -.-> E
-    B -.-> F
-    B -.-> G
-    B -.-> H
-    B -.-> I
-    C -.-> E
-    C -.-> F
-    C -.-> G
-    C -.-> H
-    C -.-> I
-```
-
 ---
 
 ## Example Inline Comment
