@@ -109,15 +109,28 @@ git checkout -b feature/your-feature-name
 git push origin feature/your-feature-name
 
 
-### Pull Request Flow with Security Scan
-
-The **Security Scan** GitHub Action is designed to run automatically on pull requests in these cases: [web:5][web:16]
-
-- From `feature/*` → `develop`  
-  - Scans new feature code before it is merged into the integration branch.
-
-- From `develop` → `main`  
-  - Scans the combined changes before they are promoted to production.
+### Branch Flow Diagram
+```
+┌─────────────┐
+│   feature/  │  ← Developers work here
+│  your-feat  │
+└──────┬──────┘
+       │ PR (with security scans)
+       ↓
+┌─────────────┐
+│   develop   │  ← Integration & Development Environment
+└──────┬──────┘
+       │ PR (with security scans)
+       ↓
+┌─────────────┐
+│     uat     │  ← User Acceptance Testing Environment
+└──────┬──────┘
+       │ PR (with security scans)
+       ↓
+┌─────────────┐
+│    main     │  ← Production Environment
+└─────────────┘
+```
 
 This ensures that security and quality checks run both at the **feature** level and at the **release** level.
 
