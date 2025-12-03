@@ -114,30 +114,6 @@ sonar.sources=.
 
 ---
 
-## Terraform Structure & Configuration
-
-```
-Terraform/
-  environments/
-    dev.tfvars
-    prod.tfvars
-  modules/
-    s3/
-      main.tf
-      variables.tf
-      outputs.tf
-  main.tf
-  variables.tf
-  outputs.tf
-```
-
-**.tfvars selection:**
-- `feature/* → develop`: `dev.tfvars`
-- `develop → uat`: `dev.tfvars`
-- `uat → main`: `prod.tfvars`
-
----
-
 ## Workflow Comments & Their Purpose
 
 - **Inline Comments**: Posted on code lines with issues (severity, tool, description, link)
