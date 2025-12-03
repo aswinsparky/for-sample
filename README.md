@@ -52,27 +52,27 @@ feature/* (Feature Development)
 **Branch Creation Order:**
 
 1. **Main Branch (Production)**
-   ```
+   ```bash
    git checkout main
-git pull origin main
+   git pull origin main
    ```
 2. **UAT Branch (from Main)**
-   ```
-git checkout main
-git checkout -b uat
-git push origin uat
+   ```bash
+    git checkout main
+    git checkout -b uat
+    git push origin uat
    ```
 3. **Develop Branch (from UAT)**
-   ```
-git checkout uat
-git checkout -b develop
-git push origin develop
+   ```bash
+    git checkout uat
+    git checkout -b develop
+    git push origin develop
    ```
 4. **Feature Branch (from Develop)**
-   ```
-git checkout develop
-git checkout -b feature/your-feature-name
-git push origin feature/your-feature-name
+   ```bash
+    git checkout develop
+    git checkout -b feature/your-feature-name
+    git push origin feature/your-feature-name
    ```
 
 **Feature branches** must start with `feature/`.
