@@ -1,46 +1,5 @@
 # Security Scan Pipeline - Complete Setup Guide
 
-## 📋 Table of Contents
-
-1. Overview
-2. Branching Strategy
-3. Branch Setup Instructions
-4. Protected Branches
-5. Pull Request Workflow
-6. Security Scans Overview
-7. SonarQube Configuration
-8. Terraform Structure & Configuration
-9. Workflow Comments & Their Purpose
-10. Report Generation & Storage
-11. AWS Configuration
-12. Troubleshooting
-13. Frequently Asked Questions (FAQ)
-14. Advanced Usage & Customization
-15. Best Practices for Secure Development
-16. Example SonarQube Quality Gate Setup
-17. Example Checkov Policy Suppression
-18. Example Bandit Configuration
-19. Example Trivy Ignore File
-20. Example Hadolint Ignore File
-21. Example Terraform Module Structure
-22. Example PR Review Process
-23. Visual Workflow Diagram
-24. Example Inline Comment
-25. Example Summary Comment
-26. Example AWS IAM Policy for Least Privilege
-27. Example Terraform Plan Command
-28. Example S3 Upload Step
-29. Example Local Scan Script
-30. Example PR Template
-31. References & Further Reading
-32. Change Log
-33. Maintainers
-34. License
-35. Contributing
-36. Acknowledgements
-
----
-
 ## Overview
 
 This repository uses a robust DevSecOps CI/CD pipeline powered by GitHub Actions. Every Pull Request triggers automated security scans for code, Dockerfiles, and Terraform infrastructure, ensuring high code quality and security before merging.
