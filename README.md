@@ -81,12 +81,28 @@ It is **critical** to create the branches in the following order to ensure the c
 
 The workflow is configured to run on the following specific PRs:
 
-| Source Branch (`head_ref`) | Target Branch (`base_ref`) | Purpose | Terraform Vars Used |
-| :--- | :--- | :--- | :--- |
-| `feature/*` | `develop` | New feature integration & **Dev** testing | `dev.tfvars` |
-| `develop` | `main` | Promotion to **Production** | `prod.tfvars` |
-
-**Note**: To enable scanning for `develop` $\rightarrow$ `uat` or `uat` $\rightarrow$ `main`, you must update the `if` condition in the workflow file.
+### Branch Flow Diagram
+```
+┌─────────────┐
+│   feature/  │  ← Developers work here
+│  your-feat  │
+└──────┬──────┘
+       │ PR (with security scans)
+       ↓
+┌─────────────┐
+│   develop   │  ← Integration & Development Environment
+└──────┬──────┘
+       │ PR (with security scans)
+       ↓
+┌─────────────┐
+│     uat     │  ← User Acceptance Testing Environment
+└──────┬──────┘
+       │ PR (with security scans)
+       ↓
+┌─────────────┐
+│    main     │  ← Production Environment
+└─────────────┘
+```
 
 ---
 
