@@ -77,26 +77,26 @@ feature/* (Feature Development)
 
 1. **Main Branch (Production)**
    ```bash
-   git checkout main
-git pull origin main
+    git checkout main
+    git pull origin main
    ```
 2. **UAT Branch (from Main)**
    ```bash
-git checkout main
-git checkout -b uat
-git push origin uat
+    git checkout main
+    git checkout -b uat
+    git push origin uat
    ```
 3. **Develop Branch (from UAT)**
    ```bash
-git checkout uat
-git checkout -b develop
-git push origin develop
+    git checkout uat
+    git checkout -b develop
+    git push origin develop
    ```
 4. **Feature Branch (from Develop)**
    ```bash
-git checkout develop
-git checkout -b feature/your-feature-name
-git push origin feature/your-feature-name
+    git checkout develop
+    git checkout -b feature/your-feature-name
+    git push origin feature/your-feature-name
    ```
 
 **Feature branches** must start with `feature/`.
